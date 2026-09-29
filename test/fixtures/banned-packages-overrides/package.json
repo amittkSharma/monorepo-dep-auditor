@@ -1,0 +1,7 @@
+{
+  "name": "fixture-banned-packages-overrides",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ]
+}

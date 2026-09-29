@@ -1,0 +1,3 @@
+# See packages/false-negative/.gitignore — same reasoning, different resolved banned version.
+!node_modules/
+!node_modules/**

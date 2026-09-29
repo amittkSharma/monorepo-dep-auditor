@@ -1,0 +1,24 @@
+{
+  /* Based on packages/common/med-configs/tsconfig.json, but this package emits a real dist/
+   * for npm publishing (declaration + outDir), unlike the bundler-consumed rsbuild packages. */
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "outDir": "dist",
+    "rootDir": "src",
+    "declaration": true,
+    "noEmit": false,
+    "strict": true,
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "useDefineForClassFields": true,
+    "types": ["node"]
+  },
+  "include": ["src/**/*.ts"]
+}

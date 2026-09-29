@@ -1,0 +1,7 @@
+{
+  "name": "consumer3",
+  "version": "1.0.0",
+  "peerDependencies": {
+    "cli-only-lib": "^1.0.0"
+  }
+}

@@ -1,0 +1,6 @@
+# This fixture's node_modules/cli-only-lib is a deliberately-authored test fixture (a fake
+# installed CLI-only peer dependency — no `main`/`exports`, only `bin` — used to prove the
+# package.json-fallback resolution path), not a real package install — un-ignore it so it's
+# actually committed to git.
+!node_modules/
+!node_modules/**

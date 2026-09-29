@@ -1,0 +1,10 @@
+src
+test
+docs
+tsconfig.json
+.versionrc.js
+biome.jsonc
+*.test.ts
+*.test.js
+.turbo
+.eslintrc*

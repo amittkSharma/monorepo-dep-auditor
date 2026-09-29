@@ -1,0 +1,5 @@
+# This fixture's node_modules/some-lib is a deliberately-authored test fixture (simulating an
+# npm `overrides` entry moving a package OUT of a banned range despite an overlapping declared
+# range), not a real package install — un-ignore it so it's actually committed to git.
+!node_modules/
+!node_modules/**

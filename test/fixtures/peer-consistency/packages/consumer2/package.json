@@ -1,0 +1,7 @@
+{
+  "name": "consumer2",
+  "version": "1.0.0",
+  "peerDependencies": {
+    "totally-missing-lib": "^1.0.0"
+  }
+}

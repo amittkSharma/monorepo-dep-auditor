@@ -1,0 +1,7 @@
+{
+  "name": "pkg-b",
+  "version": "1.0.0",
+  "dependencies": {
+    "left-pad": "^2.0.0"
+  }
+}

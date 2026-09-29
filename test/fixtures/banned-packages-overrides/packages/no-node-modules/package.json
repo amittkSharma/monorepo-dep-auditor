@@ -1,0 +1,7 @@
+{
+  "name": "no-node-modules",
+  "version": "1.0.0",
+  "dependencies": {
+    "some-lib": "^2.0.0"
+  }
+}

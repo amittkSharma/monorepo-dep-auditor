@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>monorepo-dep-auditor — try it</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --border: #8884;
+    --bad: #c62828;
+    --ok: #2e7d32;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  body {
+    font-family: system-ui, sans-serif;
+    max-width: 1100px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+    line-height: 1.45;
+  }
+  h1 { font-size: 1.4rem; }
+  .note {
+    background: #8882;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.6rem 0.9rem;
+    font-size: 0.92rem;
+    margin: 0.75rem 0 1.5rem;
+  }
+  .layout {
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    gap: 1.5rem;
+    align-items: start;
+  }
+  @media (max-width: 800px) {
+    .layout { grid-template-columns: 1fr; }
+  }
+  fieldset {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin: 0 0 1rem;
+    padding: 0.75rem 0.9rem;
+  }
+  legend { font-weight: 600; padding: 0 0.3rem; }
+  fieldset p.help {
+    margin: 0.2rem 0 0.6rem;
+    font-size: 0.82rem;
+    opacity: 0.75;
+  }
+  label.row {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.92rem;
+    margin: 0.15rem 0;
+  }
+  label.field {
+    display: block;
+    font-size: 0.85rem;
+    margin: 0.5rem 0 0.9rem;
+  }
+  label.field input {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    margin-top: 0.25rem;
+    font-family: var(--mono);
+    font-size: 0.85rem;
+    padding: 0.3rem 0.4rem;
+  }
+  label.field .hint { opacity: 0.65; font-weight: normal; }
+  code.dep { font-family: var(--mono); background: #8882; padding: 0.05rem 0.3rem; border-radius: 4px; }
+  .presets p { font-size: 0.85rem; margin: 0 0 0.4rem; opacity: 0.8; }
+  .presets .buttons { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 1rem; }
+  .presets button {
+    font-size: 0.82rem;
+    padding: 0.3rem 0.6rem;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: transparent;
+    cursor: pointer;
+  }
+  .presets button:hover { background: #8882; }
+  pre {
+    background: #8882;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.75rem 0.9rem;
+    overflow-x: auto;
+    font-size: 0.85rem;
+  }
+  table { border-collapse: collapse; width: 100%; font-size: 0.85rem; }
+  th, td { border: 1px solid var(--border); padding: 0.4rem 0.5rem; text-align: left; vertical-align: top; }
+  th { background: #8882; }
+  .exit-code { font-family: var(--mono); font-weight: 600; }
+  .exit-code.bad { color: var(--bad); }
+  .exit-code.ok { color: var(--ok); }
+  .callout {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.85rem;
+    margin-bottom: 0.75rem;
+    background: #8882;
+  }
+  .section-title { margin: 1.4rem 0 0.4rem; font-size: 1rem; }
+  .section-title:first-child { margin-top: 0; }
+  .rule-single { color: #1565c0; }
+  .rule-banned { color: var(--bad); }
+  .rule-peer { color: #6a1b9a; }
+  footer { margin-top: 2.5rem; font-size: 0.82rem; opacity: 0.7; }
+  .workspaces {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 0.9rem;
+    margin: 0.75rem 0 1.75rem;
+  }
+  .workspace-card {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.6rem 0.75rem;
+    transition: opacity 0.15s;
+  }
+  .workspace-card.skipped { opacity: 0.4; border-style: dashed; }
+  .workspace-card h3 { margin: 0 0 0.3rem; font-size: 0.82rem; font-family: var(--mono); }
+  .workspace-card p.caption { margin: 0.3rem 0 0.5rem; font-size: 0.8rem; opacity: 0.8; }
+  .workspace-card pre { margin: 0; font-size: 0.78rem; padding: 0.5rem 0.6rem; }
+  .workspace-card p.installed { margin: 0.5rem 0 0; font-size: 0.78rem; opacity: 0.75; font-style: italic; }
+  .workspace-card p.skip-note { color: var(--bad); font-size: 0.78rem; margin: 0.5rem 0 0; font-weight: 600; }
+</style>
+</head>
+<body>
+
+<h1>monorepo-dep-auditor — try it</h1>
+<div class="note">
+  This is a working demo, not the real tool — it runs against a small made-up project so you can
+  flip switches and instantly see what changes. Nothing to install, nothing on your computer gets
+  touched. See the <a href="../README.md">README</a> for the real command-line tool and settings
+  file.
+</div>
+
+<div class="presets">
+  <p>Or just click one of these common scenarios:</p>
+  <div class="buttons">
+    <button type="button" data-preset="default">Start over</button>
+    <button type="button" data-preset="ignore-dep">"We know about this mismatch, stop warning us"</button>
+    <button type="button" data-preset="harmless-ignore">"Ignore something that was already fine"</button>
+    <button type="button" data-preset="ignore-package">"Don't check this one package at all"</button>
+    <button type="button" data-preset="peer-only">"Only check peer dependencies"</button>
+    <button type="button" data-preset="yarn-pnp">"This repo uses Yarn Berry in PnP mode"</button>
+  </div>
+</div>
+
+<h2 class="section-title">The made-up project's <code class="dep">package.json</code> files</h2>
+<p class="note">
+  This is the (fake) data the tool reads — nothing real. Keep an eye on this section as you flip
+  the switches below: a card goes dashed and faded once its package is excluded from every check.
+</p>
+<div class="workspaces" id="out-workspaces"></div>
+
+<div class="layout">
+  <div>
+    <fieldset>
+      <legend>What to check</legend>
+      <label class="row"><input type="checkbox" id="opt-banned" checked> Block a specific package (here: <code class="dep">request</code>)</label>
+      <label class="row"><input type="checkbox" id="opt-banned-range" checked> Also ban <code class="dep">old-utils</code> versions <code class="dep">&gt;=4.0.0</code></label>
+      <p class="help">This one checks the version actually installed, not just the declared range —
+        so an npm <code class="dep">overrides</code> entry (or Yarn <code class="dep">resolutions</code>,
+        or pnpm's own overrides) can't sneak a banned version past a declared range that looks safe,
+        and can't get an innocent package falsely flagged either. See the two
+        <code class="dep">old-utils</code> cards above. Before anything is installed on disk yet, this
+        falls back to just the declared range, same as before.</p>
+      <label class="row"><input type="checkbox" id="opt-peer" checked> Flag peer dependencies that don't match what's installed</label>
+    </fieldset>
+
+    <fieldset>
+      <legend>Simulate the environment</legend>
+      <label class="row"><input type="checkbox" id="opt-pnp"> This repo uses Yarn Berry in <strong>PnP mode</strong></label>
+      <p class="help">Not a flag you set — the real tool auto-detects this from a
+        <code class="dep">.pnp.cjs</code>/<code class="dep">.pnp.mjs</code> file at the repo root.
+        Yarn PnP has no <code class="dep">node_modules</code>, so the tool can't check what's
+        actually installed at all. It degrades instead of guessing wrong: the peer-dependency
+        check turns itself off (with a warning), and the "banned by version range" check falls
+        back to just the declared range instead of the installed version — same as if
+        <code class="dep">overrides</code>/<code class="dep">resolutions</code> support didn't
+        exist. Flip this on to see both effects on the two <code class="dep">old-utils</code>
+        cards above.</p>
+    </fieldset>
+
+    <fieldset>
+      <legend>Where to look for version mismatches</legend>
+      <p class="help">Only affects the "different versions of the same package" check. Uncheck a
+        box to stop comparing that part of <code class="dep">package.json</code>.</p>
+      <label class="row"><input type="checkbox" class="dep-type" value="dependencies" checked> Regular dependencies</label>
+      <label class="row"><input type="checkbox" class="dep-type" value="devDependencies" checked> Dev-only dependencies</label>
+      <label class="row"><input type="checkbox" class="dep-type" value="optionalDependencies" checked> Optional dependencies</label>
+      <label class="row"><input type="checkbox" class="dep-type" value="peerDependencies"> Peer dependencies</label>
+      <label class="row"><input type="checkbox" class="dep-type" value="resolutions" checked> Yarn version overrides</label>
+    </fieldset>
+
+    <fieldset>
+      <legend>Ignore a package by name</legend>
+      <p class="help">Example: your team knows <code class="dep">left-pad</code> has different
+        versions on purpose, and wants the tool to stop complaining about it. If you type a name
+        that isn't actually mismatched right now (try <code class="dep">request</code>), it just
+        does nothing — it won't error out, so you don't have to remember to clean it up later.</p>
+      <label class="field">Package name(s) <span class="hint">(comma-separated)</span>
+        <input type="text" id="opt-ignoreDep" placeholder="left-pad, request">
+      </label>
+      <label class="field">...or a pattern <span class="hint">(comma-separated, e.g. ^left-)</span>
+        <input type="text" id="opt-ignoreDepPattern" placeholder="^left-">
+      </label>
+    </fieldset>
+
+    <fieldset>
+      <legend>Skip an entire package</legend>
+      <p class="help">Example: <code class="dep">scratch-tool</code> is a throwaway internal
+        script — tell the tool to pretend it doesn't exist for every check.</p>
+      <label class="field">By package name <span class="hint">(comma-separated)</span>
+        <input type="text" id="opt-ignorePackage" placeholder="scratch-tool">
+      </label>
+      <label class="field">...or a name pattern <span class="hint">(comma-separated)</span>
+        <input type="text" id="opt-ignorePackagePattern" placeholder="^scratch-">
+      </label>
+      <label class="field">By folder path <span class="hint">(comma-separated)</span>
+        <input type="text" id="opt-ignorePath" placeholder="packages/scratch-tool">
+      </label>
+      <label class="field">...or a path pattern <span class="hint">(comma-separated)</span>
+        <input type="text" id="opt-ignorePathPattern" placeholder="^packages/scratch-">
+      </label>
+    </fieldset>
+
+    <fieldset>
+      <legend>Auto-fix</legend>
+      <label class="row"><input type="checkbox" id="opt-fix"> Automatically fix what can be fixed</label>
+      <p class="help">Only fixes version mismatches, by rewriting <code class="dep">package.json</code>
+        files to the newest version already used somewhere. Blocked packages and peer-dependency
+        problems always need a human.</p>
+    </fieldset>
+  </div>
+
+  <div>
+    <h2 class="section-title">The command you'd run</h2>
+    <pre id="out-cli"></pre>
+
+    <h2 class="section-title">...or the settings file you'd save instead</h2>
+    <pre id="out-config"></pre>
+
+    <div id="out-notes"></div>
+
+    <h2 class="section-title">What it would report</h2>
+    <div id="out-violations"></div>
+
+    <p>Exit code: <span id="out-exit" class="exit-code"></span>
+      <span class="hint" style="font-size:0.82rem; opacity:0.7;">(0 = all good, 1 = found something — handy for CI)</span></p>
+  </div>
+</div>
+
+<footer>
+  This demo always uses the same 9 made-up packages (see the cards above) — flipping the switches
+  only changes which checks run and which packages/versions get ignored, never the underlying
+  files themselves.
+</footer>
+
+<script>
+const WORKSPACES = [
+  { name: "pkg-a", path: "packages/pkg-a", deps: { dependencies: { "left-pad": "^1.0.0" } },
+    note: "Wants left-pad ^1.0.0." },
+  { name: "pkg-b", path: "packages/pkg-b", deps: { dependencies: { "left-pad": "^2.0.0" } },
+    note: "Wants left-pad ^2.0.0 — different from pkg-a, so together they're a mismatch." },
+  { name: "scratch-tool", path: "packages/scratch-tool", deps: { devDependencies: { "left-pad": "^1.0.0" } },
+    note: "Also wants left-pad, but only as a dev dependency." },
+  { name: "uses-banned", path: "packages/uses-banned", deps: { dependencies: { "request": "^2.88.0" } },
+    note: "Depends on request, a package this demo blocks outright." },
+  { name: "some-plugin", path: "packages/some-plugin", deps: { peerDependencies: { "react": "^18.0.0" } }, installed: { "react": "17.2.0" },
+    note: "Wants React 18 as a peer dependency, but only React 17.2.0 is installed — a peer mismatch." },
+  { name: "legacy-widget", path: "packages/legacy-widget", deps: { peerDependencies: { "react": "^17.0.0" } }, installed: { "react": "17.2.0" },
+    note: "Wants React 17 as a peer dependency — 17.2.0 satisfies that just fine." },
+  { name: "missing-consumer", path: "packages/missing-consumer", deps: { peerDependencies: { "totally-missing-lib": "^1.0.0" } }, installed: {},
+    note: "Wants a peer package that isn't installed anywhere." },
+  { name: "uses-override", path: "packages/uses-override", deps: { dependencies: { "old-utils": "^1.0.0" } }, installed: { "old-utils": "4.2.0" },
+    note: "Declares old-utils ^1.0.0 — looks safe on its own — but an override actually installs 4.2.0, a banned version." },
+  { name: "pinned-safe", path: "packages/pinned-safe", deps: { dependencies: { "old-utils": "^4.0.0" } }, installed: { "old-utils": "3.2.0" },
+    note: "Declares old-utils ^4.0.0 — looks banned on its own — but an override actually installs 3.2.0, which is safe." },
+];
+
+const BANNED_DEP_TYPES = ["dependencies", "devDependencies", "optionalDependencies", "peerDependencies"];
+const DEFAULT_SINGLE_VERSION_DEP_TYPES = ["dependencies", "devDependencies", "optionalDependencies", "resolutions"];
+
+function splitList(value) {
+  return value.split(",").map((v) => v.trim()).filter(Boolean);
+}
+
+function toRegexes(patterns) {
+  return patterns.map((p) => new RegExp(p));
+}
+
+// Small stand-in for real semver matching — enough for this fixed demo, not a general library.
+function caretSatisfies(range, version) {
+  const m = /^\^(\d+)\.(\d+)\.(\d+)$/.exec(range);
+  const v = /^(\d+)\.(\d+)\.(\d+)$/.exec(version);
+  if (!m || !v) return false;
+  const [rMajor, rMinor, rPatch] = m.slice(1).map(Number);
+  const [vMajor, vMinor, vPatch] = v.slice(1).map(Number);
+  if (vMajor !== rMajor) return false;
+  if (vMinor !== rMinor) return vMinor > rMinor;
+  return vPatch >= rPatch;
+}
+
+// Small stand-in for a ">=" range comparison — enough for this fixed demo, not a general library.
+function gteSatisfies(version, minVersion) {
+  const v = /^(\d+)\.(\d+)\.(\d+)$/.exec(version);
+  const m = /^(\d+)\.(\d+)\.(\d+)$/.exec(minVersion);
+  if (!v || !m) return false;
+  const [vMajor, vMinor, vPatch] = v.slice(1).map(Number);
+  const [mMajor, mMinor, mPatch] = m.slice(1).map(Number);
+  if (vMajor !== mMajor) return vMajor > mMajor;
+  if (vMinor !== mMinor) return vMinor > mMinor;
+  return vPatch >= mPatch;
+}
+
+// Under Yarn PnP there's nothing installed to resolve, so the real tool falls back to comparing
+// the *declared* caret range against the banned ">=" range instead — this is a stand-in for that
+// same overlap check (does the caret range's upper bound reach past the banned minimum?).
+function caretRangeOverlapsGte(range, minVersion) {
+  const r = /^\^(\d+)\.\d+\.\d+$/.exec(range);
+  const m = /^(\d+)\.(\d+)\.(\d+)$/.exec(minVersion);
+  if (!r || !m) return false;
+  const caretUpperMajor = Number(r[1]) + 1; // "^X.Y.Z" covers up to (but excluding) (X+1).0.0
+  const [minMajor] = m.slice(1).map(Number);
+  return caretUpperMajor > minMajor;
+}
+
+function readState() {
+  return {
+    banned: document.getElementById("opt-banned").checked,
+    bannedRange: document.getElementById("opt-banned-range").checked,
+    peer: document.getElementById("opt-peer").checked,
+    pnp: document.getElementById("opt-pnp").checked,
+    depType: [...document.querySelectorAll(".dep-type")].filter((c) => c.checked).map((c) => c.value),
+    fix: document.getElementById("opt-fix").checked,
+    ignoreDep: splitList(document.getElementById("opt-ignoreDep").value),
+    ignoreDepPattern: splitList(document.getElementById("opt-ignoreDepPattern").value),
+    ignorePackage: splitList(document.getElementById("opt-ignorePackage").value),
+    ignorePackagePattern: splitList(document.getElementById("opt-ignorePackagePattern").value),
+    ignorePath: splitList(document.getElementById("opt-ignorePath").value),
+    ignorePathPattern: splitList(document.getElementById("opt-ignorePathPattern").value),
+  };
+}
+
+function packageIgnored(ws, s) {
+  const packagePatterns = toRegexes(s.ignorePackagePattern);
+  const pathPatterns = toRegexes(s.ignorePathPattern);
+  return (
+    s.ignorePackage.includes(ws.name) ||
+    packagePatterns.some((re) => re.test(ws.name)) ||
+    s.ignorePath.some((p) => ws.path.includes(p)) ||
+    pathPatterns.some((re) => re.test(ws.path))
+  );
+}
+
+function visibleWorkspaces(s) {
+  return WORKSPACES.filter((ws) => !packageIgnored(ws, s));
+}
+
+function simulateSingleVersion(s, notes) {
+  const depPatterns = toRegexes(s.ignoreDepPattern);
+  const versionsByDep = new Map();
+
+  for (const ws of visibleWorkspaces(s)) {
+    for (const depType of s.depType) {
+      const entries = ws.deps[depType];
+      if (!entries) continue;
+      for (const [name, range] of Object.entries(entries)) {
+        if (!versionsByDep.has(name)) versionsByDep.set(name, new Map());
+        const versions = versionsByDep.get(name);
+        if (!versions.has(range)) versions.set(range, []);
+        versions.get(range).push(ws.path);
+      }
+    }
+  }
+
+  const mismatching = [...versionsByDep.entries()].filter(([, versions]) => versions.size > 1);
+  const mismatchingNames = mismatching.map(([dep]) => dep);
+
+  // A stale ignore (nothing to ignore right now) is silently skipped — it does NOT error out.
+  for (const name of s.ignoreDep) {
+    if (!mismatchingNames.includes(name)) {
+      notes.push(
+        `"${name}" doesn't have a version mismatch right now, so ignoring it does nothing — ` +
+        "it's silently skipped instead of raising an error.",
+      );
+    }
+  }
+  for (const pattern of s.ignoreDepPattern) {
+    const re = new RegExp(pattern);
+    if (!mismatchingNames.some((name) => re.test(name))) {
+      notes.push(
+        `The pattern "${pattern}" doesn't match anything with a version mismatch right now, ` +
+        "so it's silently skipped instead of raising an error.",
+      );
+    }
+  }
+
+  const survivors = mismatching.filter(
+    ([dep]) => !s.ignoreDep.includes(dep) && !depPatterns.some((re) => re.test(dep)),
+  );
+
+  return survivors.map(([dep, versions]) => ({
+    rule: "different versions",
+    dependency: dep,
+    detail:
+      `Found ${versions.size} different versions: ` +
+      [...versions.entries()].map(([v, paths]) => `${v} (${paths.join(", ")})`).join("; "),
+    workspaces: [...versions.values()].flat(),
+  }));
+}
+
+function simulateBannedPackages(s, notes) {
+  if (!s.banned && !s.bannedRange) return [];
+  if (s.bannedRange && s.pnp) {
+    notes.push(
+      "Yarn PnP detected — the \"old-utils\" range ban can't resolve installed versions, so " +
+      "it falls back to the declared range only. Watch what happens to the two old-utils cards below.",
+    );
+  }
+  const violations = [];
+  for (const ws of visibleWorkspaces(s)) {
+    if (s.banned) {
+      for (const depType of BANNED_DEP_TYPES) {
+        const range = ws.deps[depType]?.request;
+        if (range) {
+          violations.push({
+            rule: "blocked package",
+            dependency: "request",
+            detail: `This package is blocked outright (found version "${range}")`,
+            workspaces: [ws.path],
+          });
+        }
+      }
+    }
+
+    if (s.bannedRange) {
+      for (const depType of BANNED_DEP_TYPES) {
+        const declaredRange = ws.deps[depType]?.["old-utils"];
+        if (!declaredRange) continue;
+
+        if (s.pnp) {
+          // No node_modules to resolve under PnP — same declared-spec-only check the tool used
+          // before it could resolve installed versions at all, with the same blind spot.
+          if (caretRangeOverlapsGte(declaredRange, "4.0.0")) {
+            violations.push({
+              rule: "blocked package",
+              dependency: "old-utils",
+              detail: `Declared range "${declaredRange}" overlaps the banned range (>=4.0.0) — can't verify the actually-installed version under Yarn PnP, so this may be a false alarm or may be missing a real one`,
+              workspaces: [ws.path],
+            });
+          }
+          continue;
+        }
+
+        // Prefers what's actually installed over the declared range, same as the real tool —
+        // that's the whole point of this check (see the help text above the checkbox).
+        const installed = ws.installed?.["old-utils"];
+        if (installed && gteSatisfies(installed, "4.0.0")) {
+          violations.push({
+            rule: "blocked package",
+            dependency: "old-utils",
+            detail: `Installed version "${installed}" is banned (>=4.0.0) — an override moved this past the declared range "${declaredRange}", which looked safe on its own`,
+            workspaces: [ws.path],
+          });
+        }
+        // If installed is set but safe, or unset entirely, this demo's fixed data never lands in
+        // the declared-spec fallback branch — see the help text above for what that covers.
+      }
+    }
+  }
+  return violations;
+}
+
+function simulatePeerConsistency(s, notes) {
+  if (!s.peer) return [];
+  if (s.pnp) {
+    notes.push(
+      "Yarn PnP detected — peer-consistency skipped entirely (can't resolve installed versions " +
+      "without the PnP loader). No peer-dependency violations below, even the real ones.",
+    );
+    return [];
+  }
+  const violations = [];
+  for (const ws of visibleWorkspaces(s)) {
+    const peerDeps = ws.deps.peerDependencies;
+    if (!peerDeps) continue;
+    for (const [name, range] of Object.entries(peerDeps)) {
+      const installed = ws.installed?.[name];
+      if (!installed) {
+        violations.push({
+          rule: "peer dependency",
+          dependency: name,
+          detail: `"${name}" (wants "${range}") isn't installed anywhere it can be found from "${ws.path}"`,
+          workspaces: [ws.path],
+        });
+      } else if (!caretSatisfies(range, installed)) {
+        violations.push({
+          rule: "peer dependency",
+          dependency: name,
+          detail: `"${name}" wants "${range}", but "${installed}" is what's actually installed at "${ws.path}"`,
+          workspaces: [ws.path],
+        });
+      }
+    }
+  }
+  return violations;
+}
+
+function cliCommand(s) {
+  const parts = ["npx monorepo-dep-auditor", "--format json"];
+  if (s.fix) parts.push("--fix");
+  if (s.depType.length && s.depType.join() !== DEFAULT_SINGLE_VERSION_DEP_TYPES.join()) {
+    for (const t of s.depType) parts.push(`--dep-type ${t}`);
+  }
+  for (const v of s.ignoreDep) parts.push(`--ignore-dep ${v}`);
+  for (const v of s.ignoreDepPattern) parts.push(`--ignore-dep-pattern '${v}'`);
+  for (const v of s.ignorePackage) parts.push(`--ignore-package ${v}`);
+  for (const v of s.ignorePackagePattern) parts.push(`--ignore-package-pattern '${v}'`);
+  for (const v of s.ignorePath) parts.push(`--ignore-path ${v}`);
+  for (const v of s.ignorePathPattern) parts.push(`--ignore-path-pattern '${v}'`);
+  return parts.join(" \\\n  ");
+}
+
+function configJson(s) {
+  const config = {};
+  const bannedPackages = [];
+  if (s.banned) bannedPackages.push("request");
+  if (s.bannedRange) bannedPackages.push({ name: "old-utils", range: ">=4.0.0" });
+  if (bannedPackages.length) config.bannedPackages = bannedPackages;
+  if (s.peer) config.checkPeerConsistency = true;
+  if (s.depType.length && s.depType.join() !== DEFAULT_SINGLE_VERSION_DEP_TYPES.join()) {
+    config.depType = s.depType;
+  }
+  if (s.ignoreDep.length) config.ignoreDep = s.ignoreDep;
+  if (s.ignoreDepPattern.length) config.ignoreDepPattern = s.ignoreDepPattern;
+  if (s.ignorePackage.length) config.ignorePackage = s.ignorePackage;
+  if (s.ignorePackagePattern.length) config.ignorePackagePattern = s.ignorePackagePattern;
+  if (s.ignorePath.length) config.ignorePath = s.ignorePath;
+  if (s.ignorePathPattern.length) config.ignorePathPattern = s.ignorePathPattern;
+  return JSON.stringify(config, null, 2);
+}
+
+function escapeHtml(value) {
+  return value.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+function ruleClass(rule) {
+  return rule === "different versions" ? "rule-single" : rule === "blocked package" ? "rule-banned" : "rule-peer";
+}
+
+function packageJsonFor(ws) {
+  return { name: ws.name, version: "1.0.0", ...ws.deps };
+}
+
+// "installed" isn't part of package.json — it stands in for what the real tool finds already
+// resolvable in node_modules, so it's shown as a separate note, not inside the pre block.
+function installedNote(ws) {
+  if (!ws.installed) return "";
+  const declaredNames = new Set();
+  for (const depType of BANNED_DEP_TYPES) {
+    for (const name of Object.keys(ws.deps[depType] ?? {})) declaredNames.add(name);
+  }
+  return [...declaredNames]
+    .map((name) => {
+      const version = ws.installed[name];
+      return version
+        ? `Installed on disk: ${name}@${version}`
+        : `Installed on disk: nothing — ${name} isn't installed anywhere`;
+    })
+    .join("<br>");
+}
+
+function renderWorkspaceCards(s) {
+  document.getElementById("out-workspaces").innerHTML = WORKSPACES.map((ws) => {
+    const skipped = packageIgnored(ws, s);
+    const note = installedNote(ws);
+    return `
+      <div class="workspace-card${skipped ? " skipped" : ""}">
+        <h3>${escapeHtml(ws.path)}/package.json</h3>
+        <p class="caption">${escapeHtml(ws.note)}</p>
+        <pre>${escapeHtml(JSON.stringify(packageJsonFor(ws), null, 2))}</pre>
+        ${note ? `<p class="installed">${note}</p>` : ""}
+        ${skipped ? '<p class="skip-note">Skipped — excluded by your current ignore settings</p>' : ""}
+      </div>`;
+  }).join("");
+}
+
+function render() {
+  const s = readState();
+  const notes = [];
+
+  renderWorkspaceCards(s);
+
+  const violations = [
+    ...simulateSingleVersion(s, notes),
+    ...simulateBannedPackages(s, notes),
+    ...simulatePeerConsistency(s, notes),
+  ];
+
+  document.getElementById("out-cli").textContent = cliCommand(s);
+  document.getElementById("out-config").textContent = configJson(s);
+
+  document.getElementById("out-notes").innerHTML = notes.length
+    ? notes.map((n) => `<div class="callout">${escapeHtml(n)}</div>`).join("")
+    : "";
+
+  const violationsEl = document.getElementById("out-violations");
+  if (violations.length === 0) {
+    violationsEl.innerHTML = "<p><em>Nothing to report — looks clean.</em></p>";
+  } else {
+    violationsEl.innerHTML = `
+      <table>
+        <thead><tr><th>Check</th><th>Package</th><th>What's wrong</th><th>Where</th></tr></thead>
+        <tbody>
+          ${violations.map((v) => `
+            <tr>
+              <td class="${ruleClass(v.rule)}">${escapeHtml(v.rule)}</td>
+              <td>${escapeHtml(v.dependency)}</td>
+              <td>${escapeHtml(v.detail)}</td>
+              <td>${escapeHtml(v.workspaces.join(", "))}</td>
+            </tr>`).join("")}
+        </tbody>
+      </table>`;
+  }
+
+  if (s.fix) {
+    const fixableCount = violations.filter((v) => v.rule === "different versions").length;
+    const manualCount = violations.length - fixableCount;
+    violationsEl.innerHTML += `<p class="help" style="font-size:0.85rem;opacity:0.8;">
+      With auto-fix on, ${fixableCount} version-mismatch issue(s) above would be fixed for you.
+      ${manualCount > 0 ? `The other ${manualCount} issue(s) (blocked packages / peer dependencies) still need a human.` : ""}
+    </p>`;
+  }
+
+  const exitEl = document.getElementById("out-exit");
+  exitEl.textContent = violations.length > 0 ? "1" : "0";
+  exitEl.className = `exit-code ${violations.length > 0 ? "bad" : "ok"}`;
+}
+
+function applyPreset(name) {
+  const set = (id, value) => { document.getElementById(id).value = value; };
+  const check = (id, value) => { document.getElementById(id).checked = value; };
+  const depTypes = (values) => {
+    for (const c of document.querySelectorAll(".dep-type")) {
+      c.checked = values.includes(c.value);
+    }
+  };
+
+  check("opt-banned", true);
+  check("opt-banned-range", true);
+  check("opt-peer", true);
+  check("opt-fix", false);
+  check("opt-pnp", false);
+  depTypes(DEFAULT_SINGLE_VERSION_DEP_TYPES);
+  for (const id of ["opt-ignoreDep", "opt-ignoreDepPattern", "opt-ignorePackage", "opt-ignorePackagePattern", "opt-ignorePath", "opt-ignorePathPattern"]) {
+    set(id, "");
+  }
+
+  if (name === "ignore-dep") {
+    set("opt-ignoreDep", "left-pad");
+  } else if (name === "harmless-ignore") {
+    set("opt-ignoreDep", "request");
+  } else if (name === "ignore-package") {
+    set("opt-ignorePackage", "scratch-tool");
+  } else if (name === "peer-only") {
+    check("opt-banned", false);
+    check("opt-banned-range", false);
+    depTypes(["peerDependencies"]);
+  } else if (name === "yarn-pnp") {
+    check("opt-pnp", true);
+  }
+
+  render();
+}
+
+for (const el of document.querySelectorAll("input")) {
+  el.addEventListener("input", render);
+}
+for (const btn of document.querySelectorAll("[data-preset]")) {
+  btn.addEventListener("click", () => applyPreset(btn.dataset.preset));
+}
+
+render();
+</script>
+</body>
+</html>

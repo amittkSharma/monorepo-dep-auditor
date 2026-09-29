@@ -1,0 +1,7 @@
+{
+  "name": "consumer",
+  "version": "1.0.0",
+  "peerDependencies": {
+    "some-peer-lib": "^2.0.0"
+  }
+}

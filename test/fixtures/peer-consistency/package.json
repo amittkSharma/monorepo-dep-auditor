@@ -1,0 +1,7 @@
+{
+  "name": "fixture-peer-consistency",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ]
+}

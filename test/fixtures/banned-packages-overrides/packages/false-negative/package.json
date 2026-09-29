@@ -1,0 +1,7 @@
+{
+  "name": "false-negative",
+  "version": "1.0.0",
+  "dependencies": {
+    "some-lib": "^1.0.0"
+  }
+}

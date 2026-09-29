@@ -1,0 +1,7 @@
+{
+  "name": "fixture-single-version-mismatch",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ]
+}
