@@ -1,9 +1,5 @@
 # monorepo-dep-auditor
 
-[![License: MIT](https://shields.io)](https://opensource.org)
-![Node Support](https://shields.io)
-
-
 Policy checks for JS/TS monorepos: one command, one optional config file, three checks, five
 report formats. Catches dependency versions that disagree across workspace packages, blocks
 packages you've decided the repo shouldn't use, and verifies peer dependencies against what's
