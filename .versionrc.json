@@ -1,0 +1,22 @@
+{
+  "tagPrefix": "v",
+  "types": [
+    { "type": "feat", "section": "Features" },
+    { "type": "fix", "section": "Bug Fixes" },
+    { "type": "perf", "section": "Performance Improvements" },
+    { "type": "revert", "section": "Reverts" },
+    { "type": "docs", "section": "Documentation" },
+    { "type": "style", "hidden": true },
+    { "type": "refactor", "hidden": true },
+    { "type": "test", "hidden": true },
+    { "type": "chore", "hidden": true },
+    { "type": "build", "hidden": true },
+    { "type": "ci", "hidden": true }
+  ],
+  "scripts": {
+    "prebump": "npm run lint:fix &&npm run lint && npm run typecheck && npm run test && npm run build",
+    "postbump": "git add package.json .versionrc.json",
+    "postbump:minor": "git add package.json .versionrc.json",
+    "postbump:major": "git add package.json .versionrc.json"
+  }
+}

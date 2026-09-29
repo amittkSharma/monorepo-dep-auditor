@@ -4,6 +4,15 @@
   "description": "Policy checks for JS/TS monorepos on top of check-dependency-version-consistency: banned packages and real peer-dependency resolution consistency.",
   "type": "module",
   "license": "MIT",
+  "author": "Amitt K Sharma",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/amittkSharma/monorepo-dep-auditor"
+  },
+  "homepage": "https://github.com/amittkSharma/monorepo-dep-auditor",
+  "bugs": {
+    "url": "https://github.com/amittkSharma/monorepo-dep-auditor/issues"
+  },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "bin": {
