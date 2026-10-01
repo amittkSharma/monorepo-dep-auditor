@@ -7,7 +7,7 @@
   "author": "Amitt K Sharma",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/amittkSharma/monorepo-dep-auditor"
+    "url": "git+https://github.com/amittkSharma/monorepo-dep-auditor.git"
   },
   "homepage": "https://github.com/amittkSharma/monorepo-dep-auditor",
   "bugs": {
@@ -16,7 +16,7 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "bin": {
-    "monorepo-dep-auditor": "./dist/cli.js"
+    "monorepo-dep-auditor": "dist/cli.js"
   },
   "exports": {
     ".": {
