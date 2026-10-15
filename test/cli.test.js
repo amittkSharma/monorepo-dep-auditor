@@ -90,3 +90,16 @@ test("a relative --config resolves against --root-dir, not the CLI's cwd", () =>
     "expected custom.config.json (relative to --root-dir) to be loaded and enable the banned-packages check",
   );
 });
+
+test("--help and -h print usage and exit 0 without auditing", () => {
+  for (const flag of ["--help", "-h"]) {
+    const result = spawnSync(process.execPath, [cliPath, flag], {
+      cwd: path.join(__dirname, "fixtures", "single-version-mismatch"),
+      encoding: "utf8",
+    });
+
+    assert.equal(result.status, 0);
+    assert.match(result.stdout, /^Usage: monorepo-dep-auditor \[options\]/);
+    assert.match(result.stdout, /--format/);
+  }
+});

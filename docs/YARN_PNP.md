@@ -64,7 +64,7 @@ reporter.
    process per dependency lookup — meaningfully slower on a large monorepo — and requires the
    `yarn` binary to be on `PATH`, which a global install of this package can't assume.
 3. **Document a required invocation mode**: tell PnP users to run this tool via `yarn node
-   <path-to-this-cli>` (or `yarn dlx monorepo-dep-auditor`) instead of `npx`/global `node`. Since
+   <path-to-this-cli>` (or `yarn dlx @amittksharma/monorepo-dep-auditor`) instead of `npx`/global `node`. Since
    `yarn node` pre-loads the PnP hook before running the script, this package's existing
    `createRequire(...).resolve()` calls would then transparently work with zero code changes here.
    Cheapest of the three in code, but pushes the fix onto every user's invocation habits instead

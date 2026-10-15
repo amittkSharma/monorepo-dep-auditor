@@ -26,9 +26,31 @@ function isOwnRuleViolation(violation: Violation): boolean {
   );
 }
 
+const USAGE = `Usage: monorepo-dep-auditor [options]
+
+Policy checks for JS/TS monorepos: version consistency, banned packages, peer-dependency consistency.
+Exits 1 if any violation is found, 0 otherwise.
+
+Options:
+  --format <name>               table (default) | json | markdown | csv | html
+  --out <path>                  Write the report to a file instead of stdout
+  --config <path>               Config file (default: <root-dir>/monorepo-dep-auditor.config.json)
+  --root-dir <path>             Monorepo to audit (default: current directory)
+  --fix                         Auto-fix single-version mismatches
+  --dep-type <type>             Dependency type to check (repeatable)
+  --ignore-dep <name>           Ignore a dependency in single-version (repeatable)
+  --ignore-dep-pattern <regex>  Same, by regex (repeatable)
+  --ignore-package <name>       Ignore a workspace package (repeatable)
+  --ignore-package-pattern <regex>
+  --ignore-path <path>          Ignore a workspace path (repeatable)
+  --ignore-path-pattern <regex>
+  -h, --help                    Show this help
+`;
+
 function main(): void {
   const { values } = parseArgs({
     options: {
+      help: { type: "boolean", short: "h", default: false },
       format: { type: "string", default: "table" },
       out: { type: "string" },
       config: { type: "string" },
@@ -43,6 +65,11 @@ function main(): void {
       "ignore-path-pattern": { type: "string", multiple: true },
     },
   });
+
+  if (values.help) {
+    console.log(USAGE);
+    return;
+  }
 
   const format = values.format as string;
   if (!(format in REPORTERS)) {

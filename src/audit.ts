@@ -1,8 +1,8 @@
 import fs from "node:fs";
 import path from "node:path";
 import { cdvcToViolations } from "./cdvc-adapter.js";
-import { countWorkspacePackages } from "./count-packages.js";
 import { loadConfig } from "./config.js";
+import { countWorkspacePackages } from "./count-packages.js";
 import { assertNotLegacyLerna, detectMonorepoKind } from "./monorepo-kind.js";
 import { checkBannedPackages } from "./rules/banned-packages.js";
 import { checkPeerConsistency } from "./rules/peer-consistency.js";

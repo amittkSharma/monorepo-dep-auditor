@@ -515,7 +515,7 @@ function simulatePeerConsistency(s, notes) {
 }
 
 function cliCommand(s) {
-  const parts = ["npx monorepo-dep-auditor", "--format json"];
+  const parts = ["npx @amittksharma/monorepo-dep-auditor", "--format json"];
   if (s.fix) parts.push("--fix");
   if (s.depType.length && s.depType.join() !== DEFAULT_SINGLE_VERSION_DEP_TYPES.join()) {
     for (const t of s.depType) parts.push(`--dep-type ${t}`);

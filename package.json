@@ -1,7 +1,20 @@
 {
-  "name": "monorepo-dep-auditor",
-  "version": "0.1.0",
+  "name": "@amittksharma/monorepo-dep-auditor",
+  "version": "1.0.0",
   "description": "Policy checks for JS/TS monorepos on top of check-dependency-version-consistency: banned packages and real peer-dependency resolution consistency.",
+  "keywords": [
+    "monorepo",
+    "workspaces",
+    "dependencies",
+    "dependency-consistency",
+    "banned-packages",
+    "peer-dependencies",
+    "npm",
+    "yarn",
+    "pnpm",
+    "audit",
+    "cli"
+  ],
   "type": "module",
   "license": "MIT",
   "author": "Amitt K Sharma",

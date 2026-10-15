@@ -1,4 +1,9 @@
-# monorepo-dep-auditor
+# @amittksharma/monorepo-dep-auditor
+
+[![npm version](https://img.shields.io/npm/v/@amittksharma/monorepo-dep-auditor)](https://www.npmjs.com/package/@amittksharma/monorepo-dep-auditor)
+[![npm downloads](https://img.shields.io/npm/dm/@amittksharma/monorepo-dep-auditor)](https://www.npmjs.com/package/@amittksharma/monorepo-dep-auditor)
+[![license](https://img.shields.io/npm/l/@amittksharma/monorepo-dep-auditor)](./LICENSE)
+[![node](https://img.shields.io/node/v/@amittksharma/monorepo-dep-auditor)](https://www.npmjs.com/package/@amittksharma/monorepo-dep-auditor)
 
 Policy checks for JS/TS monorepos: one command, one optional config file, three checks, five
 report formats. Catches dependency versions that disagree across workspace packages, blocks
@@ -33,17 +38,23 @@ resulting CLI command, config file, and violations update live, without installi
 ## Install
 
 ```bash
-npm install --save-dev monorepo-dep-auditor
+npm install --save-dev @amittksharma/monorepo-dep-auditor
 ```
 
 ```bash
-yarn add --dev monorepo-dep-auditor
+yarn add --dev @amittksharma/monorepo-dep-auditor
 ```
 
-A global install works too — `npm install -g monorepo-dep-auditor`, then run it against any
+A global install works too — `npm install -g @amittksharma/monorepo-dep-auditor`, then run it against any
 repo with `--root-dir /path/to/that/repo` (see [CLI usage](#cli-usage)). Nothing in this
 package's resolution logic depends on where it's installed; only the CLI's default target
 (`process.cwd()`) does.
+
+The package is scoped, but the command it installs is still the short `monorepo-dep-auditor`. Only `npx` needs the full scoped name.
+
+### Migrating from `monorepo-dep-auditor`
+
+The unscoped `monorepo-dep-auditor` package has moved here. Only the package name changed: replace `monorepo-dep-auditor` with `@amittksharma/monorepo-dep-auditor` in your install commands, `npx` calls and imports. The command name, flags and config file name (`monorepo-dep-auditor.config.json`) are unchanged.
 
 ## Config
 
@@ -99,17 +110,18 @@ bad value. That validation (and the exact wording of that one error message) com
 ## CLI usage
 
 ```bash
-npx monorepo-dep-auditor                         # table format, stdout
-npx monorepo-dep-auditor --format json
-npx monorepo-dep-auditor --format markdown --out report.md
-npx monorepo-dep-auditor --format csv --out report.csv
-npx monorepo-dep-auditor --format html --out report.html
-npx monorepo-dep-auditor --fix
-npx monorepo-dep-auditor --config ./custom.config.json
-npx monorepo-dep-auditor --root-dir ../some-other-monorepo
-npx monorepo-dep-auditor --dep-type dependencies --dep-type devDependencies
-npx monorepo-dep-auditor --ignore-dep left-pad --ignore-dep-pattern '^@internal/'
-npx monorepo-dep-auditor --ignore-package some-legacy-package --ignore-path packages/scratch
+npx @amittksharma/monorepo-dep-auditor                         # table format, stdout
+npx @amittksharma/monorepo-dep-auditor --format json
+npx @amittksharma/monorepo-dep-auditor --format markdown --out report.md
+npx @amittksharma/monorepo-dep-auditor --format csv --out report.csv
+npx @amittksharma/monorepo-dep-auditor --format html --out report.html
+npx @amittksharma/monorepo-dep-auditor --fix
+npx @amittksharma/monorepo-dep-auditor --config ./custom.config.json
+npx @amittksharma/monorepo-dep-auditor --root-dir ../some-other-monorepo
+npx @amittksharma/monorepo-dep-auditor --dep-type dependencies --dep-type devDependencies
+npx @amittksharma/monorepo-dep-auditor --ignore-dep left-pad --ignore-dep-pattern '^@internal/'
+npx @amittksharma/monorepo-dep-auditor --ignore-package some-legacy-package --ignore-path packages/scratch
+npx @amittksharma/monorepo-dep-auditor --help                # list every option
 ```
 
 The `--dep-type`/`--ignore-*` flags are repeatable (pass the flag multiple times for multiple
@@ -120,7 +132,7 @@ values) and override the same-named config file field when both are set. See
 relative to it if not absolute) — `monorepo-dep-auditor.config.json` is then looked up under
 *that* directory by default, not the CLI's cwd. A relative `--config` follows the same rule: it
 resolves against `--root-dir`, not the CLI's cwd, so both flags stay consistent with each other.
-This is what makes a single global install (`npm install -g monorepo-dep-auditor`) usable against
+This is what makes a single global install (`npm install -g @amittksharma/monorepo-dep-auditor`) usable against
 any repo without `cd`-ing into it first; without it, the CLI only ever audits `process.cwd()`.
 
 Exit code is `1` if any violation exists (from any check), `0` otherwise — wire this straight
@@ -192,7 +204,7 @@ untrusted input.
 ## Node API usage
 
 ```ts
-import { audit, toJson, toHtml } from 'monorepo-dep-auditor';
+import { audit, toJson, toHtml } from '@amittksharma/monorepo-dep-auditor';
 
 const { violations, monorepoKind, repoName, packageCount } = audit({
   rootDir: '/path/to/workspace/root',
@@ -221,7 +233,7 @@ if (violations.length > 0) {
 Each check is also exported individually if you only want one:
 
 ```ts
-import { checkBannedPackages, checkPeerConsistency } from 'monorepo-dep-auditor';
+import { checkBannedPackages, checkPeerConsistency } from '@amittksharma/monorepo-dep-auditor';
 
 const banned = checkBannedPackages(rootDir, [{ name: 'request', reason: 'deprecated' }]);
 const peers = checkPeerConsistency(rootDir);
